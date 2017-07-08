@@ -10,7 +10,7 @@ from asyncpg_simpleorm import BaseModel, Column, AsyncModel, \
 
 dbuser = os.environ.get('DB_USERNAME', 'postgres')
 dbpass = os.environ.get('DB_PASSWORD', 'secret')
-dbhost = os.environ.get('DB_HOST', 'postgres')
+dbhost = os.environ.get('DB_HOST', 'localhost')
 dbport = os.environ.get('DB_PORT', 5432)
 dbname = os.environ.get('DB_NAME', 'postgres')
 
