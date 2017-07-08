@@ -6,7 +6,7 @@ python: 3.6
 
 env:
   - TOXENV=py36
-  - DB_PASSWORD=secret
+  - TOXENV=py37
 
 services:
   - docker
@@ -22,5 +22,8 @@ install:
 
 # command to run tests, e.g. python setup.py test
 script: tox -e ${TOXENV}
+
+after_success:
+  - coveralls
 
 
