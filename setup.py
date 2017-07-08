@@ -20,7 +20,7 @@ test_requirements = [
 
 setup(
     name='asyncpg_simpleorm',
-    version='0.1.0',
+    version='0.1.1',
     description="Simple orm for asyncpg",
     long_description=readme + '\n\n' + history,
     author="Michael Housh",
