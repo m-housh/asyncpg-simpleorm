@@ -166,7 +166,10 @@ class Statement(BaseStatement):
         strings = []
         args = []
         for key, value in items:
-            key = self.model.ensured_column_name(key)
+            try:
+                key = self.model.ensured_column_name(key)
+            except ValueError:
+                pass
             # verify the key is in the ``check`` if applicable.
             if value and check is None or key in check:
                 # passed verification, so we store create a query string

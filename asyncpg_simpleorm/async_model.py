@@ -1,6 +1,6 @@
 import typing
 import uuid
-import asyncpg
+# import asyncpg
 from .abstract import AsyncContextManagerABC
 from .connection_managers import ConnectionManager, PoolManager
 from .exceptions import ExecutionFailure
@@ -385,7 +385,8 @@ class AsyncModel(BaseModel):
     async def delete(self) -> None:
         """Delete an instance from the database.
 
-        :raises .exceptions.ExecutionFailure:  If no records were deleted from the database.
+        :raises .exceptions.ExecutionFailure:  If no records were deleted from
+                                               the database.
 
         """
         async with self.connection() as conn:

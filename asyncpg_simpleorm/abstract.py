@@ -83,8 +83,7 @@ class AsyncModelABC(metaclass=abc.ABCMeta):
         if cls is AsyncModelABC:
             return _all_checks(Cls, 'connection', 'from_record',
                                '__init_subclass__', 'column_names', 'tablename')
-        return NotImplemented
-
+        return NotImplemented  # pragma: no cover
 
 
 class AsyncContextManagerABC(metaclass=abc.ABCMeta):
@@ -103,6 +102,6 @@ class AsyncContextManagerABC(metaclass=abc.ABCMeta):
 
     @classmethod
     def __subclasshook__(cls, Cls):
-        if cls is ModelABC:
+        if cls is AsyncContextManagerABC:
             return _all_checks(Cls, '__aenter__', '__aexit__')
         return NotImplemented  # pragma: no cover

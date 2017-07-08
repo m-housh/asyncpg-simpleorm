@@ -1,20 +1,43 @@
 import pytest
+import uuid
 import random
 import asyncpg
 from asyncpg_simpleorm import AsyncModel, ExecutionFailure, PoolManager, \
-    ConnectionManager, AsyncContextManagerABC
+    ConnectionManager, AsyncContextManagerABC, AsyncModelABC
 
 
 pytestmark = pytest.mark.asyncio
 
 
-async def test_DbModel_connection(User):
+async def test_AsyncModelABC(User):
+    assert issubclass(User, AsyncModelABC)
+    assert isinstance(User(), AsyncModelABC)
+
+    assert not issubclass(object, AsyncModelABC)
+    assert not isinstance(object(), AsyncModelABC)
+
+
+async def test_AsyncContextManagerABC(User):
+    assert issubclass(ConnectionManager, AsyncContextManagerABC)
+    assert issubclass(PoolManager, AsyncContextManagerABC)
+    assert isinstance(User.connection(), AsyncContextManagerABC)
+    assert not issubclass(object, AsyncContextManagerABC)
+    assert not isinstance(object(), AsyncContextManagerABC)
+
+
+async def test_Column__repr__(User):
+    expected = "Column(key='_id', default={}, primary_key=True)".format(
+        uuid.uuid4)
+    assert repr(User.id) == expected
+
+
+async def test_AsyncModel_connection(User):
     connection = User.connection()
     assert isinstance(connection, AsyncContextManagerABC)
     assert type(connection) in (ConnectionManager, PoolManager)
 
 
-async def test_DbModel__init_subclass__():
+async def test_AsyncModel__init_subclass__():
 
     with pytest.raises(RuntimeError):
 

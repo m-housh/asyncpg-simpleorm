@@ -2,20 +2,31 @@
 # This file will be regenerated if you run travis_pypi_setup.py
 
 language: python
-python: 3.5
+python: 
+  - "3.6"
+  - "3.7-dev"
 
 env:
-  - TOXENV=py35
-  - TOXENV=py34
-  - TOXENV=py33
-  - TOXENV=py27
-  - TOXENV=py26
-  - TOXENV=pypy
+  - TOXENV=py36
+  - TOXENV=py37
+
+services:
+  - docker
+
+before_install:
+  - docker pull postgres:alpine
+  - docker run -d -e POSTGRES_PASSWORD=secret postgres:alpine
 
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-install: pip install -U tox
+install: 
+  - pip install -U tox coveralls tox-travis
+  - pip install -r requirements_dev.txt
 
 # command to run tests, e.g. python setup.py test
-script: tox -e ${TOXENV}
+# script: tox -e ${TOXENV}
+script: tox
+
+after_success:
+  - coveralls
 
 

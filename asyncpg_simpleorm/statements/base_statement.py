@@ -154,7 +154,10 @@ class StatementValues:
         return iter((self.query_string(), ) + self.query_args())
 
     def __str__(self):
-        return self.query_string()
+        try:
+            return self.query_string()
+        except:
+            return ''
 
     def __repr__(self):
         cn = self.__class__.__name__
@@ -269,4 +272,5 @@ class BaseStatement(StatementABC):
     def __repr__(self):
         cn = self.__class__.__name__
         model = self.model
-        return f"{cn}({self._values}, model={model})"
+        stmt = _quote_if_str(str(self._values))
+        return f"{cn}(statement={stmt}, model={model})"

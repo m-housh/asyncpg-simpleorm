@@ -281,3 +281,18 @@ def test_delete(User):
     # a where statement on an instance.
     stmt.where(name='test')
     assert stmt.query_string() == 'DELETE FROM users\nWHERE users.name = $1'
+
+
+def test_Statement_parse_where_items(User):
+    stmt = Statement(User)
+    items = [('invalid', 'not in check')]
+    check = ['id', 'name', 'email']
+
+    with pytest.raises(ValueError):
+        stmt._parse_where_items(items, check, strict_check=True)
+
+
+def test_Statement__repr__(User):
+    stmt = Statement(User)
+    expected = f"Statement(statement='', model={User})"
+    assert repr(stmt) == expected
