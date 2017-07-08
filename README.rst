@@ -6,8 +6,8 @@ asyncpg-simpleorm
 .. image:: https://img.shields.io/pypi/v/asyncpg_simpleorm.svg
         :target: https://pypi.python.org/pypi/asyncpg_simpleorm
 
-.. image:: https://img.shields.io/travis/m-housh/asyncpg_simpleorm.svg
-        :target: https://travis-ci.org/m-housh/asyncpg_simpleorm
+.. image:: https://img.shields.io/travis/m-housh/asyncpg-simpleorm.svg
+        :target: https://travis-ci.org/m-housh/asyncpg-simpleorm
 
 .. image:: https://readthedocs.org/projects/asyncpg-simpleorm/badge/?version=latest
         :target: https://asyncpg-simpleorm.readthedocs.io/en/latest/?badge=latest
