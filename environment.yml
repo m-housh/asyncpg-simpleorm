@@ -1,0 +1,12 @@
+channels:
+  - conda-forge
+name: py36
+dependencies:
+  - pip
+  - python=3.6.1
+  - setuptools
+  - pip:
+      - Sphinx
+      - sphinx-autodoc-typehints
+      - sphinxcontrib-trio
+
