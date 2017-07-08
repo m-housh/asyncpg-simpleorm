@@ -9,4 +9,5 @@ dependencies:
       - Sphinx
       - sphinx-autodoc-typehints
       - sphinxcontrib-trio
+      - asyncpg
 
