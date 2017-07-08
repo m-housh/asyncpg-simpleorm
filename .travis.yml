@@ -8,6 +8,7 @@ python:
 
 env:
   - TOXENV=py36
+  - TOXENV=py37
 
 services:
   - docker
@@ -22,7 +23,8 @@ install:
   - pip install -r requirements_dev.txt
 
 # command to run tests, e.g. python setup.py test
-script: tox -e ${TOXENV}
+# script: tox -e ${TOXENV}
+script: tox
 
 after_success:
   - coveralls
