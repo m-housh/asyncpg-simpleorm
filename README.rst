@@ -13,10 +13,6 @@ asyncpg-simpleorm
         :target: https://asyncpg-simpleorm.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
-.. image:: https://pyup.io/repos/github/m-housh/asyncpg_simpleorm/shield.svg
-     :target: https://pyup.io/repos/github/m-housh/asyncpg_simpleorm/
-     :alt: Updates
-
 
 Simple orm for asyncpg. 
 
