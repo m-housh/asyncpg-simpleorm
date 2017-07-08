@@ -44,13 +44,9 @@ class PoolManager(AsyncContextManagerABC):
         self._pool = None
 
     async def __aenter__(self):
-        if self._connection is not None:
-            raise TypeError(self)
-
         if self._pool is None:
             self._pool = await asyncpg.create_pool(*self._args,
                                                    **self._kwargs)
-
         self._connection = await self._pool.acquire()
         return self._connection
 
