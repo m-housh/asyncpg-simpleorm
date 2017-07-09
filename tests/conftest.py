@@ -5,8 +5,8 @@ import os
 import random
 import string
 import uuid
-from asyncpg_simpleorm import BaseModel, Column, AsyncModel, \
-    ConnectionManager, PoolManager
+from asyncpg_simpleorm import BaseModel, create_column, AsyncModel, \
+    ConnectionManager, PoolManager, String, UUID
 
 dbuser = os.environ.get('DB_USERNAME', 'postgres')
 dbpass = os.environ.get('DB_PASSWORD', 'secret')
@@ -28,7 +28,7 @@ async def _create_table(connection, tablename):
             CREATE TABLE IF NOT EXISTS {tablename} (
                 _id uuid PRIMARY KEY,
                 name varchar(40) NOT NULL,
-                email varchar(100) NOT NULL
+                email text NOT NULL
             )
         ''')
 
@@ -57,9 +57,9 @@ class UserModelMixin:
 
     __tablename__ = 'users'
 
-    id = Column('_id', default=uuid.uuid4, primary_key=True)
-    name = Column(default='test')
-    email = Column()
+    id = create_column('_id', UUID(), default=uuid.uuid4, primary_key=True)
+    name = create_column(String(40), default='test')
+    email = create_column(String())
 
     @classmethod
     async def populate(cls, n):

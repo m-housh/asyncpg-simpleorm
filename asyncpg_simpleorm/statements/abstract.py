@@ -2,7 +2,7 @@ import abc
 import typing
 import weakref
 
-from ..abstract import _all_checks
+from .._utils import all_checks
 
 
 class StatementABC(metaclass=abc.ABCMeta):
@@ -40,7 +40,7 @@ class StatementABC(metaclass=abc.ABCMeta):
         flattened query args.
 
         """
-        pass
+        return (self.query_string, ) + tuple(self.query_args)
 
     @abc.abstractmethod
     def set_statement(self, *args, **kwargs):  # pragma: no cover
@@ -49,14 +49,15 @@ class StatementABC(metaclass=abc.ABCMeta):
         """
         pass
 
+    @abc.abstractmethod
     def __iter__(self) -> typing.Iterator[typing.Any]:  # pragma: no cover
         return iter(self.query())
 
     @classmethod
     def __subclasshook__(cls, Cls):
         if cls is StatementABC:
-            return _all_checks(Cls, 'model', 'query_string', 'query_args',
-                               'set_statement', '__iter__')
+            return all_checks(Cls, 'model', 'query_string', 'query_args',
+                              'set_statement', '__iter__')
         return NotImplemented  # pragma: no cover
 
 

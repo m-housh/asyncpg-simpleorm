@@ -48,8 +48,11 @@ clean-test: ## remove test and coverage artifacts
 	rm -f .coverage
 	rm -fr htmlcov/
 
-lint: ## check style with flake8
-	flake8 asyncpg_simpleorm tests
+run-lint: ## check style with flake8
+	flake8 asyncpg_simpleorm
+
+lint:  ## check style with flake8
+	docker-compose run --rm orm make run-lint
 
 run-tests: ## run tests quickly with the default Python
 	py.test -v --cov asyncpg_simpleorm --cov-report term-missing $(TEST_ARGS)

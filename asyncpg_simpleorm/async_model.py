@@ -5,69 +5,8 @@ from .abstract import AsyncContextManagerABC
 from .connection_managers import ConnectionManager, PoolManager
 from .exceptions import ExecutionFailure
 from .statements import select, delete, update, insert
-
-
-def _quote_if_str(val):
-    """Helper to quote a string.
-
-    """
-    if isinstance(val, str):
-        return f"'{val}'"
-    return val
-
-
-class Column:
-    """A descriptor class that represents a table column.
-
-    :param key:  The table column name in the database.  If not set, then this
-                 will be set to the attribute name used on the
-                 :class:`AsyncModel` subclass the column was declared on.
-    :param default:  A value or callable that is used for a default value.
-                     If this is callable, then it should recieve no input and
-                     return a value when called.
-    :param primary_key:  Set's if the column is a primary key column.  Primary
-                         key columns are used in certain query statements, such
-                         as :meth:`AsyncModel.save`
-
-    """
-    __slots__ = ('key', 'default', 'primary_key', '_hidden_key')
-
-    def __init__(self, key: str=None, default=None, primary_key=False):
-        self.key = key
-        self.default = default
-        self.primary_key = primary_key
-        self._hidden_key = '__' + uuid.uuid4().hex
-
-    def __get__(self, instance, owner):
-        if instance is None:
-            # This gives access to attributes when accessed from the class
-            # which a ``Column`` is delared on.
-            return self
-        # This is when trying to access the value of a ``Column`` from an
-        # instance of the class which declared the ``Column``.
-        #
-        # check the instance for a value already set.
-        rv = getattr(instance, self._hidden_key, None)
-        # if a value hasn't been set, then we set it to the ``default``,
-        # which can be a callable or a value.
-        if rv is None:
-            # set the value to the ``default`` or the value returned by
-            # calling ``default``.
-            rv = self.default() if callable(self.default) else self.default
-            self.__set__(instance, rv)
-        return rv
-
-    def __set__(self, instance, value):
-        # stores the value on the instance.
-        setattr(instance, self._hidden_key, value)
-
-    def __repr__(self):
-        cn = self.__class__.__name__
-        attrs = ', '.join(
-            '{}={}'.format(attr, _quote_if_str(getattr(self, attr)))
-            for attr in self.__slots__ if attr != '_hidden_key'
-        )
-        return f'{cn}({attrs})'
+from .column import Column
+from ._utils import quote_if_string as _quote_if_str
 
 
 class ModelMeta(type):
@@ -273,7 +212,7 @@ class BaseModel(metaclass=ModelMeta):
 # TODO:  Update the ``delete`` method to be a classmethod, that accepts kwargs
 class AsyncModel(BaseModel):
     """Extends the :class:`BaseModel` class to include helpful database
-    queries.
+    queries.  Implements the :class:`AsyncModelABC`.
 
     By default ``get`` and ``get_one`` methods return :class:`asyncpg.Record`
     instances.  This option can be toggled class wide, by setting a class

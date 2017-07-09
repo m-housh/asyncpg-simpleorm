@@ -4,6 +4,7 @@ import typing
 from ..abstract import ModelABC
 from ..exceptions import InvalidModel
 from .abstract import StatementABC, SimpleDescriptor
+from .._utils import quote_if_string
 
 
 def counter(start=1):
@@ -22,12 +23,6 @@ def _safe_call(fn, *args, **kwargs):
         return fn(*args, **kwargs)
     except:
         pass
-
-
-def _quote_if_str(val):
-    if isinstance(val, str):
-        return f"'{val}'"
-    return val
 
 
 class StatementDescriptor(SimpleDescriptor):
@@ -161,7 +156,7 @@ class StatementValues:
 
     def __repr__(self):
         cn = self.__class__.__name__
-        query_string = _quote_if_str(
+        query_string = quote_if_string(
             _safe_call(self.query_string)
         )
         args = self.query_args()
@@ -272,5 +267,5 @@ class BaseStatement(StatementABC):
     def __repr__(self):
         cn = self.__class__.__name__
         model = self.model
-        stmt = _quote_if_str(str(self._values))
+        stmt = quote_if_string(str(self._values))
         return f"{cn}(statement={stmt}, model={model})"

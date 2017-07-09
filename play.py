@@ -1,59 +1,50 @@
 #!/usr/bin/env python
-import inspect
-from asyncpg_simpleorm import AsyncModel, Column, ConnectionManager
-from asyncpg_simpleorm.abstract import AsyncModelABC
-
-DB_URI = 'postgres://postgres:secret@postgres:5432/postgres'
 
 
-async def create_table(model):
-    if not issubclass(model, AsyncModelABC):
-        raise TypeError(model)
+class ColumnTypeMeta(type):
 
-    tablename = model.tablename()
-    stmt = f'''
-    CREATE TABLE IF NOT EXISTS {tablename} (
-        id uuid PRIMARY KEY,
-        name varchar(100) NOT NULL,
-        email text
-    )
-    '''
-    async with model.connection() as conn:
-        async with conn.transaction():
-            await conn.execute(stmt)
+    def __new__(cls, name, bases, namespace, **kwargs):
+
+        if '__slots__' not in namespace:
+            if '__init__' in namespace:
+                raise RuntimeError(
+                    f'{name} does not declare __slots__, but has __init__'
+                )
+            namespace['__slots__'] = ()
+
+        return type.__new__(cls, name, bases, namespace, **kwargs)
 
 
-async def drop_table(model, cascade=False):
-    if not issubclass(model, AsyncModelABC):
-        raise TypeError(model)
+class ColumnType(metaclass=ColumnTypeMeta):
 
-    tablename = model.tablename()
-    stmt = f'''DROP TABLE IF EXISTS {tablename}'''
+    __slots__ = ()
 
-    if cascade is True:
-        stmt += ' CASCADE'
+    @property
+    def type_string(self):
+        return getattr(self, '_type_string', None)
 
-    async with model.connection() as conn:
-        async with conn.transaction():
-             await conn.execute(stmt)
-
-
-class User(AsyncModel, connection=ConnectionManager(DB_URI)):
-
-    __tablename__ = 'users'
-
-    id = Column(primary_key=True)
-    name = Column()
-    email = Column()
+    def __init_subclass__(cls, type_string=None, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if not type_string:
+            raise RuntimeError(
+                f'ColumnType subclass did not declare type_string: {cls}'
+            )
+        cls._type_string = str(type_string)
 
 
-async def main():
-    await create_table(User)
-    print(await User.get())
-    await drop_table(User, True)
+class UUID(ColumnType, type_string='uuid'):
+    pass
+
+
+class Integer(ColumnType, type_string='integer'):
+    pass
+
+
+class Fail(ColumnType):
+    pass
 
 
 if __name__ == '__main__':
-    import asyncio
 
-    asyncio.get_event_loop().run_until_complete(main())
+    print(UUID().type_string, hasattr(UUID(), '__dict__'))
+    print(Integer().type_string)

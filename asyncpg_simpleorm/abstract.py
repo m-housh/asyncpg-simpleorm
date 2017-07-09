@@ -1,19 +1,7 @@
 import abc
 import typing
 
-
-def _all_checks(Cls, *props) -> bool:
-    """Helper for ``__subclasshook__`` methods.
-
-    :param Cls:  The class to check for the attributes in it's ``__mro__``
-    :param props:  Attribute names to ensure are in the ``Cls``.
-
-    """
-    checks = map(
-        lambda x: any(x in vars(Base) for Base in Cls.__mro__),
-        props
-    )
-    return all(checks)
+from ._utils import all_checks
 
 
 class ModelABC(metaclass=abc.ABCMeta):
@@ -33,7 +21,7 @@ class ModelABC(metaclass=abc.ABCMeta):
     @classmethod
     def __subclasshook__(cls, Cls):
         if cls is ModelABC:
-            return _all_checks(Cls, 'column_names', 'tablename')
+            return all_checks(Cls, 'column_names', 'tablename')
         return NotImplemented  # pragma: no cover
 
 
@@ -81,7 +69,7 @@ class AsyncModelABC(metaclass=abc.ABCMeta):
     @classmethod
     def __subclasshook__(cls, Cls):
         if cls is AsyncModelABC:
-            return _all_checks(Cls, 'connection', 'from_record',
+            return all_checks(Cls, 'connection', 'from_record',
                                '__init_subclass__', 'column_names', 'tablename')
         return NotImplemented  # pragma: no cover
 
@@ -103,5 +91,5 @@ class AsyncContextManagerABC(metaclass=abc.ABCMeta):
     @classmethod
     def __subclasshook__(cls, Cls):
         if cls is AsyncContextManagerABC:
-            return _all_checks(Cls, '__aenter__', '__aexit__')
+            return all_checks(Cls, '__aenter__', '__aexit__')
         return NotImplemented  # pragma: no cover

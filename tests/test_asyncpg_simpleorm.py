@@ -25,12 +25,6 @@ async def test_AsyncContextManagerABC(User):
     assert not isinstance(object(), AsyncContextManagerABC)
 
 
-async def test_Column__repr__(User):
-    expected = "Column(key='_id', default={}, primary_key=True)".format(
-        uuid.uuid4)
-    assert repr(User.id) == expected
-
-
 async def test_AsyncModel_connection(User):
     connection = User.connection()
     assert isinstance(connection, AsyncContextManagerABC)
