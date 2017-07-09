@@ -12,8 +12,6 @@ __all__ = (
     'update',
     'insert',
     'delete',
-    'drop_table',
-    'create_table',
 )
 
 ItemsType = typing.Iterable[typing.Tuple[str, typing.Any]]

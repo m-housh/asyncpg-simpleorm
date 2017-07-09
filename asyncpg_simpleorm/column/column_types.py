@@ -1,4 +1,5 @@
 import abc
+import inspect
 import typing
 from .._utils import all_checks
 
@@ -111,7 +112,7 @@ class Time(ColumnType, pg_type_string='time'):
     pass
 
 
-class TZTime(ColumnType, pg_type_string='time with timezone'):
+class TZTime(ColumnType, pg_type_string='timetz'):
     pass
 
 
@@ -119,9 +120,189 @@ class TimeStamp(ColumnType, pg_type_string='timestamp'):
     pass
 
 
-class TZTimeStamp(ColumnType, pg_type_string='timestamp with timezone'):
+class TZTimeStamp(ColumnType, pg_type_string='timestamptz'):
     pass
 
 
 class TimeInterval(ColumnType, pg_type_string='interval'):
+    pass
+
+
+class Array(ColumnType, pg_type_string='ARRAY'):
+
+    __slots__ = ('_n', '__type', '_dimensions')
+
+    def __init__(self, type, n=None, dimensions=None):
+        self._type = type
+        self._n = int(n) if n else None
+        self._dimensions = int(dimensions) if dimensions else None
+
+    @property
+    def _type(self) -> typing.Optional[ColumnType]:
+        return self.__type
+
+    @_type.setter
+    def _type(self, val):
+        if val:
+            if inspect.isclass(val):
+                val = val()
+
+            if not isinstance(val, ColumnTypeABC):
+                raise TypeError(val)
+        self.__type = val
+
+    @property
+    def pg_type_string(self) -> str:
+        if self._dimensions is not None:
+            # create a dimensional (possibly) sized array.
+            rv = f'{self._type}'
+            if self._n:
+                n = self._n
+            else:
+                n = ''
+            rv += ' ' + ''.join(
+                map(lambda _: f'[{n}]', range(self._dimensions))
+            )
+            return rv
+        # create a non-dimension (possibly sized) array.
+        rv = f'{self._type} ARRAY'
+        if self._n:
+            rv += f'[{self._n}]'
+        return rv
+
+
+class BigInteger(ColumnType, pg_type_string='int8'):
+    pass
+
+
+class Bit(ColumnType, pg_type_string='varbit'):
+
+    __slots__ = ('_n', '_fixed_length')
+
+    def __init__(self, n, fixed_length=False):
+        self._n = int(n)
+        self._fixed_length = fixed_length
+
+    @property
+    def pg_type_string(self) -> str:
+        if self._fixed_length:
+            return f'bit({self._n})'
+        return f'varbit({self._n})'
+
+
+class BigSerial(ColumnType, pg_type_string='serial8'):
+    pass
+
+
+class Binary(ColumnType, pg_type_string='bytea'):
+    pass
+
+
+class FixedLengthString(ColumnType, pg_type_string='char'):
+
+    __slots__ = ('_n', )
+
+    def __init__(self, n: int):
+        self._n = int(n)
+
+    @property
+    def pg_type_string(self) -> str:
+        return f'char({self._n})'
+
+
+class Money(ColumnType, pg_type_string='money'):
+    pass
+
+
+class IPAddress(ColumnType, pg_type_string='cidr'):
+
+    __slots__ = ('_inet', )
+
+    def __init__(self, inet=False):
+        self._inet = inet
+
+    @property
+    def pg_type_string(self) -> str:
+        if self._inet is True:
+            return 'inet'
+        return 'cidr'
+
+
+class MACAddress(ColumnType, pg_type_string='macaddr'):
+    pass
+
+
+class Box(ColumnType, pg_type_string='box'):
+    pass
+
+
+class Line(ColumnType, pg_type_string='line'):
+    pass
+
+
+class LineSegment(ColumnType, pg_type_string='lseg'):
+    pass
+
+
+class Circle(ColumnType, pg_type_string='circle'):
+    pass
+
+
+class Path(ColumnType, pg_type_string='path'):
+    pass
+
+
+class Point(ColumnType, pg_type_string='point'):
+    pass
+
+
+class Polygon(ColumnType, pg_type_string='polygon'):
+    pass
+
+
+class Double(ColumnType, pg_type_string='float8'):
+    pass
+
+
+class Json(ColumnType, pg_type_string='json'):
+    pass
+
+
+class JsonB(ColumnType, pg_type_string='jsonb'):
+    pass
+
+
+class PGLogSequenceNumber(ColumnType, pg_type_string='pg_lsn'):
+    pass
+
+
+class Real(ColumnType, pg_type_string='float4'):
+    pass
+
+
+class SmallInteger(ColumnType, pg_type_string='int2'):
+    pass
+
+
+class SmallSerial(ColumnType, pg_type_string='serial2'):
+    pass
+
+
+class Serial(ColumnType, pg_type_string='serial4'):
+    pass
+
+
+class TextSearchQuery(ColumnType, pg_type_string='tsquery'):
+    pass
+
+
+class TextSearchVector(ColumnType, pg_type_string='tsvector'):
+    pass
+
+
+class TransactionID(ColumnType, pg_type_string='txid_snapshot'):
+    pass
+
+
+class XML(ColumnType, pg_type_string='xml'):
     pass

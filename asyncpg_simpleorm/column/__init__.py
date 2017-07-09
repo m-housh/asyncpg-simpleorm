@@ -1,18 +1,22 @@
 import typing
+import functools
 import uuid
 import inspect
 from .._utils import quote_if_string
 
 from .column_types import ColumnTypeABC, ColumnTypeMeta, ColumnType, String, \
     UUID, Boolean, Integer, Number, Date, Time, TZTime, TZTimeStamp, \
-    TimeStamp, TimeInterval
+    TimeStamp, TimeInterval, Array, Bit, BigInteger, BigSerial, Binary, \
+    FixedLengthString, Money, IPAddress, MACAddress, Box, Line, LineSegment, \
+    Circle, Path, Point, Polygon, Double, Json, JsonB, PGLogSequenceNumber, \
+    Real, SmallInteger, SmallSerial, Serial, TextSearchQuery, \
+    TextSearchVector, TransactionID, XML
 
 __all__ = (
     'Column',
     'ColumnTypeABC',
     'ColumnTypeMeta',
     'ColumnType',
-    'create_column',
 
     # column types
     'String',
@@ -26,7 +30,53 @@ __all__ = (
     'TZTime',
     'TZTimeStamp',
     'TimeInterval',
+    'Bit',
+    'BigInteger',
+    'Array',
+    'BigSerial',
+    'Binary',
+    'FixedLengthString',
+    'Money',
+    'IPAddress',
+    'MACAddress',
+    'Box',
+    'Line',
+    'LineSegment',
+    'Circle',
+    'Path',
+    'Point',
+    'Polygon',
+    'Double',
+    'Json',
+    'JsonB',
+    'PGLogSequenceNumber',
+    'Real',
+    'SmallInteger',
+    'SmallSerial',
+    'Serial',
+    'TextSearchQuery',
+    'TextSearchVector',
+    'TransactionID',
+    'XML',
 )
+
+def _parse_column_input(fn):
+
+    @functools.wraps(fn)
+    def decorator(self, *args, **kwargs):
+        kwargs.setdefault(
+            'key',
+            next((a for a in args if isinstance(a, str)), None)
+        )
+        kwargs.setdefault(
+            'type',
+            next((a for a in args if inspect.isclass(a) and
+                  issubclass(a, ColumnTypeABC) or isinstance(a, ColumnTypeABC)),
+                 None)
+        )
+        return fn(self, **kwargs)
+
+    return decorator
 
 
 class Column:
@@ -46,6 +96,7 @@ class Column:
     """
     __slots__ = ('key', 'default', 'primary_key', '_type', '_hidden_key')
 
+    @_parse_column_input
     def __init__(self, key: str=None,
                  type: typing.Union[ColumnType, typing.Type[ColumnType]]=None,
                  *, default: typing.Any=None, primary_key: bool=False):
@@ -101,28 +152,3 @@ class Column:
         )
         attrs += f', _type={self._type}'
         return f'{cn}({attrs})'
-
-
-def create_column(*args, **kwargs) -> Column:
-    """Factory method for :class:`Column`.  This allows a better api to
-    instantiate a ``Column``.  This will allow the ``key`` and ``type``
-    parameters to be entered as args (in any order) to create a ``Column``
-    instance.
-
-    :param args:  Any string found is assumed to be the ``key`` for the column,
-                  and any :class:`ColumnTypeABC` subclass (instance or class)
-                  will be assumed to be the type.
-
-    :param kwargs:  Passed on to the :class:`Column` constructor.
-
-    """
-    kwargs.setdefault(
-        'key',
-        next((a for a in args if isinstance(a, str)), None)
-    )
-    kwargs.setdefault(
-        'type',
-        next((a for a in args if inspect.isclass(a) and issubclass(a, ColumnTypeABC)
-              or isinstance(a, ColumnTypeABC)), None)
-    )
-    return Column(**kwargs)

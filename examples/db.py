@@ -1,8 +1,19 @@
-import os
-import uuid
+"""
+examples/db.py
+--------------
 
-import asyncpg
-from asyncpg_simpleorm import AsyncModel, Column, PoolManager
+We use a ``PoolManager`` here, but a single connection manager can be
+created using orm.ConnectionManager(...)
+
+The ``PoolManager`` mimics the ``asyncpg.create_pool`` method, passing any
+*args and/or **kwargs to that method, and the ``ConnectionManager`` mimics
+``asyncpg.connect``.
+
+
+"""
+import os
+
+import asyncpg_simpleorm as orm
 
 
 DB_USERNAME = os.environ.get('DB_USERNAME', 'postgres')
@@ -12,22 +23,11 @@ DB_PORT = os.environ.get('DB_PORT', '5432')
 DB_NAME = os.environ.get('DB_NAME', 'postgres')
 
 
-# We use a ``PoolManager`` here, because all classes will
-# share the same manager class.
-manager = PoolManager(
+pool_manager = orm.PoolManager(
     user=DB_USERNAME,
     password=DB_PASSWORD,
     host=DB_HOST,
     port=DB_PORT,
-    database=DB_NAME
+    database=DB_NAME,
+    command_timeout=60
 )
-
-
-class DbModel(AsyncModel, connection=manager):
-    """Base database model class that we inherit from.
-
-    Adds the ``id`` column to all models that inherit from this class.  The
-    ``id`` in the database will be found at a column named ``_id``.
-
-    """
-    id = Column('_id', default=uuid.uuid4, primary_key=True)

@@ -14,7 +14,7 @@ asyncpg-simpleorm
         :alt: Documentation Status
 
 
-Simple orm for asyncpg. 
+Simple orm for asyncpg.  This package requires python >= 3.6.
 
 * Free software: Apache Software License 2.0
 * Documentation: https://asyncpg-simpleorm.readthedocs.io.
@@ -24,6 +24,8 @@ Features
 --------
 
 * Simplifies generating database queries.
+* Provides a model class to represent a database table.
+* Offers utilities to create, drop, or truncate tables.
 
 Not-Featured (yet)
 ------------------

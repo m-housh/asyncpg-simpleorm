@@ -1,8 +1,11 @@
 import pytest
 import inspect
-
-from asyncpg_simpleorm import column
 import uuid
+
+from .conftest import DBURI
+
+from asyncpg_simpleorm import column, table_utils, AsyncModel, ConnectionManager
+from asyncpg_simpleorm import table_utils
 
 
 def _col_types():
@@ -23,7 +26,12 @@ def column_type(request):
 
 
 def test_ColumnTypes__slots__(column_type):
-    assert not hasattr(column_type(), '__dict__')
+    if column_type == column.Array:
+        assert not hasattr(column_type(column.String()), '__dict__')
+    elif column_type in [column.Bit, column.FixedLengthString]:
+        assert not hasattr(column_type(3), '__dict__')
+    else:
+        assert not hasattr(column_type(), '__dict__')
 
 
 def test_ColumnType_subclass_fails():
@@ -41,14 +49,20 @@ def test_ColumnType_subclass_fails():
 
 
 def test_ColumnType_pg_column_string(column_type):
-
     assert issubclass(column_type, column.ColumnTypeABC)
 
-    type_string = column_type().pg_type_string
+    ctype = column_type
+
+    if column_type == column.Array:
+        ctype = lambda: column_type(column.String())
+    elif column_type in [column.Bit, column.FixedLengthString]:
+        ctype = lambda: column_type(3)
+
+    type_string = ctype().pg_type_string
     assert type_string
 
-    col = column.Column('col', column_type(), primary_key=True)
-    print('col', col)
+
+    col = column.Column('col', ctype(), primary_key=True)
     expected = f'col {type_string} PRIMARY KEY'
     assert col.pg_column_string == expected
 
@@ -82,10 +96,10 @@ def test_ColumnType_pg_column_string_fails():
 def test_column_factory():
 
     cols = (
-        column.create_column('id', column.String, default='paul',
-                             primary_key=True),
-        column.create_column(column.String(), 'id', default='paul',
-                             primary_key=True),
+        column.Column('id', column.String, default='paul',
+                      primary_key=True),
+        column.Column(column.String(), 'id', default='paul',
+                      primary_key=True),
     )
     for col in cols:
         if inspect.isclass(col._type):
@@ -95,3 +109,58 @@ def test_column_factory():
         assert col.key == 'id'
         assert col.primary_key is True
         assert col.default == 'paul'
+
+
+def test_Array():
+    a = column.Array(column.Integer, 3)
+    assert a.pg_type_string == 'integer ARRAY[3]'
+
+    a = column.Array(column.Integer(), 3, 3)
+    assert a.pg_type_string == 'integer [3][3][3]'
+
+    a = column.Array(column.Integer, dimensions=2)
+    assert a.pg_type_string == 'integer [][]'
+
+
+def test_Array_fails():
+    with pytest.raises(TypeError):
+        column.Array(object())
+
+    with pytest.raises(TypeError):
+        column.Array(object)
+
+
+@pytest.mark.asyncio
+async def test_ColumnTypes_create_tables(column_type):
+
+    ctypes = []
+
+    if column_type == column.Array:
+        ctypes = [
+            column_type(column.Integer),
+            column_type(column.Integer(), 3),
+            column_type(column.Integer(), 3, 3)
+        ]
+    elif column_type == column.Bit:
+        ctypes = [
+            column_type(3),
+            column_type(3, fixed_length=True)
+        ]
+    elif column_type == column.FixedLengthString:
+        ctypes = [column_type(3)]
+    elif column_type == column.IPAddress:
+        ctypes = [
+            column_type(),
+            column_type(inet=True)
+        ]
+    else:
+        ctypes = [column_type()]
+
+    for ctype in ctypes:
+        class ColumnTypeTable(AsyncModel, connection=ConnectionManager(DBURI)):
+            col = column.Column(ctype)
+
+        # test that types create tables properly
+        await table_utils.create_table(ColumnTypeTable)
+        # drop the table after creating it.
+        await table_utils.drop_table(ColumnTypeTable)

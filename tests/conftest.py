@@ -5,7 +5,7 @@ import os
 import random
 import string
 import uuid
-from asyncpg_simpleorm import BaseModel, create_column, AsyncModel, \
+from asyncpg_simpleorm import BaseModel, Column, AsyncModel, \
     ConnectionManager, PoolManager, String, UUID
 
 dbuser = os.environ.get('DB_USERNAME', 'postgres')
@@ -34,9 +34,20 @@ async def _create_table(connection, tablename):
 
 
 async def _clean_db():
-    connection = await asyncpg.connect(DBURI)
-    await _drop_db(connection, 'users')
-    await _create_table(connection, 'users')
+    """Drop and recreate the database tables.
+
+    """
+    n = 5
+    while n > 0:
+        try:
+            connection = await asyncpg.connect(DBURI)
+            await _drop_db(connection, 'users')
+            await _create_table(connection, 'users')
+            await connection.close()
+            break
+        except asyncpg.exceptions.TooManyConnectionsError:
+            await asyncio.sleep(1)
+            n -= 1
 
 
 @pytest.fixture(autouse=True)
@@ -57,9 +68,9 @@ class UserModelMixin:
 
     __tablename__ = 'users'
 
-    id = create_column('_id', UUID(), default=uuid.uuid4, primary_key=True)
-    name = create_column(String(40), default='test')
-    email = create_column(String())
+    id = Column('_id', UUID(), default=uuid.uuid4, primary_key=True)
+    name = Column(String(40), default='test')
+    email = Column(String())
 
     @classmethod
     async def populate(cls, n):

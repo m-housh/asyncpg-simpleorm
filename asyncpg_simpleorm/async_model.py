@@ -305,20 +305,19 @@ class AsyncModel(BaseModel):
 
 
         """
-        async with self.connection() as conn:
-            async with conn.transaction():
-                # try an update first. If nothing is updated then the
-                # update_result will be 'UPDATE 0'.
-                res_string = await conn.execute(*update(self))
-                if res_string == 'UPDATE 0':
-                    # if the update failed, then we try an insert
-                    # statement, and let any errors bubble up.
-                    # if the insert was successful, then the res_string
-                    # will be 'INSERT 0 1'.
-                    res_string = await conn.execute(*insert(self))
+        # try an update first. If nothing is updated then the
+        # update_result will be 'UPDATE 0'.
+        result = await self.execute(*update(self))
+        if result == 'UPDATE 0':
+            # if the update failed, then we try an insert
+            # statement, and let any errors bubble up.
+            # if the insert was successful, then the res_string
+            # will be 'INSERT 0 1'.
+            result = await self.execute(*insert(self))
+
         # check the result string, it should end with a '1' if any records
         # were updated/saved to the database.
-        if not res_string[-1] == '1':  # pragma: no cover
+        if not result[-1] == '1':  # pragma: no cover
             raise ExecutionFailure(f'Failed to insert or update: {self}')
 
     async def delete(self) -> None:
@@ -328,14 +327,11 @@ class AsyncModel(BaseModel):
                                                the database.
 
         """
-        async with self.connection() as conn:
-            async with conn.transaction():
-                # Delete the row from the database
-                # If the statement was successful, then the return value will
-                # be 'DELETE 1'
-                delete_result = await conn.execute(*delete(self))
+        result = await self.execute(*delete(self))
 
-        if not delete_result[-1] == '1':
+        # If the statement was successful, then the return value will
+        # be 'DELETE 1'
+        if not result[-1] == '1':
             raise ExecutionFailure(f'Failed to delete: {self}')
 
     @classmethod
@@ -443,6 +439,23 @@ class AsyncModel(BaseModel):
 
         """
         return cls(**record)
+
+    @classmethod
+    async def execute(cls, *args, **kwargs):
+        """Execute's a database query inside a transaction block.  This
+        cuts down on the boiler plate nested ``async with`` statements to
+        execute a query.
+
+        This is equivalent to::
+
+            >>> async with Model.connection() as conn:
+                    async with conn.transaction():
+                        return await conn.execute(*args, **kwargs)
+
+        """
+        async with cls.connection() as conn:
+            async with conn.transaction():
+                return await conn.execute(*args, **kwargs)
 
     @classmethod
     def __init_subclass__(cls, connection=None, **kwargs):

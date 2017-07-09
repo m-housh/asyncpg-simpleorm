@@ -6,6 +6,7 @@ Subpackages
 
 .. toctree::
 
+    asyncpg_simpleorm.column
     asyncpg_simpleorm.statements
 
 Submodules
@@ -39,6 +40,14 @@ asyncpg\_simpleorm\.exceptions module
 -------------------------------------
 
 .. automodule:: asyncpg_simpleorm.exceptions
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+asyncpg\_simpleorm\.table\_utils module
+---------------------------------------
+
+.. automodule:: asyncpg_simpleorm.table_utils
     :members:
     :undoc-members:
     :show-inheritance:
