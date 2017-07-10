@@ -70,7 +70,7 @@ class AsyncModelABC(metaclass=abc.ABCMeta):
     def __subclasshook__(cls, Cls):
         if cls is AsyncModelABC:
             return all_checks(Cls, 'connection', 'from_record',
-                               '__init_subclass__', 'column_names', 'tablename')
+                              '__init_subclass__', 'column_names', 'tablename')
         return NotImplemented  # pragma: no cover
 
 

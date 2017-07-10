@@ -60,6 +60,7 @@ __all__ = (
     'XML',
 )
 
+
 def _parse_column_input(fn):
 
     @functools.wraps(fn)
@@ -69,7 +70,7 @@ def _parse_column_input(fn):
             next((a for a in args if isinstance(a, str)), None)
         )
         kwargs.setdefault(
-            'type',
+            '_type',
             next((a for a in args if inspect.isclass(a) and
                   issubclass(a, ColumnTypeABC) or isinstance(a, ColumnTypeABC)),
                  None)
@@ -98,10 +99,10 @@ class Column:
 
     @_parse_column_input
     def __init__(self, key: str=None,
-                 type: typing.Union[ColumnType, typing.Type[ColumnType]]=None,
+                 _type: typing.Union[ColumnType, typing.Type[ColumnType]]=None,
                  *, default: typing.Any=None, primary_key: bool=False):
         self.key = key
-        self._type = type
+        self._type = _type
         self.default = default
         self.primary_key = primary_key
         self._hidden_key = '__' + uuid.uuid4().hex

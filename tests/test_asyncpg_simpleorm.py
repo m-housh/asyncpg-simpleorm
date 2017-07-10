@@ -1,5 +1,4 @@
 import pytest
-import uuid
 import random
 import asyncpg
 from asyncpg_simpleorm import AsyncModel, ExecutionFailure, PoolManager, \
@@ -37,6 +36,7 @@ async def test_AsyncModel__init_subclass__():
 
         class Fail(AsyncModel, connection=object()):
             pass
+
 
 async def test_save(User):
 

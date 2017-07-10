@@ -40,7 +40,6 @@ def test_ColumnType_subclass_fails():
         class Fail(column.ColumnType):
             pass
 
-
     with pytest.raises(RuntimeError):
         class Fail2(column.ColumnType, pg_type_string='string'):
             # init with no declared __slots__ fails
@@ -51,26 +50,25 @@ def test_ColumnType_subclass_fails():
 def test_ColumnType_pg_column_string(column_type):
     assert issubclass(column_type, column.ColumnTypeABC)
 
-    ctype = column_type
-
     if column_type == column.Array:
-        ctype = lambda: column_type(column.String())
+        ctype = column_type(column.String())
     elif column_type in [column.Bit, column.FixedLengthString]:
-        ctype = lambda: column_type(3)
+        ctype = column_type(3)
+    else:
+        ctype = column_type()
 
-    type_string = ctype().pg_type_string
+    type_string = ctype.pg_type_string
     assert type_string
 
-
-    col = column.Column('col', ctype(), primary_key=True)
+    col = column.Column('col', ctype, primary_key=True)
     expected = f'col {type_string} PRIMARY KEY'
     assert col.pg_column_string == expected
 
 
 def test_Column__repr__(User):
     expected = (
-        "Column(key='_id', default={}, primary_key=True, _type=uuid)".format(
-        uuid.uuid4)
+        "Column(key='_id', default={}, primary_key=True, _type=uuid)"
+        .format(uuid.uuid4)
     )
     assert repr(User.id) == expected
 
@@ -88,7 +86,7 @@ def test_ColumnType_pg_column_string_fails():
     with pytest.raises(TypeError):
         col.pg_column_string
 
-    col = column.Column('col', type=object)
+    col = column.Column('col', _type=object)
     with pytest.raises(TypeError):
         col.pg_column_string
 

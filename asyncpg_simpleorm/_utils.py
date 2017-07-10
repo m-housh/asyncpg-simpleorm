@@ -7,7 +7,6 @@ def quote_if_string(val: typing.Any) -> typing.Any:
     return val
 
 
-
 def all_checks(Cls, *props) -> bool:
     """Helper for ``__subclasshook__`` methods.
 

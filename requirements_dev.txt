@@ -8,6 +8,7 @@ coverage==4.1
 Sphinx>=1.6.1
 sphinx-autodoc-typehints
 sphinxcontrib-trio
+sphinx_rtd_theme
 
 pytest>=3.0.6
 pytest-asyncio

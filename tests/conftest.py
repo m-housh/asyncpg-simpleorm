@@ -82,12 +82,12 @@ class UserModelMixin:
 
 
 class ConnectionManagerUser(UserModelMixin, AsyncModel,
-            connection=ConnectionManager(DBURI)):
+                            connection=ConnectionManager(DBURI)):
     pass
 
 
 class PoolManagerUser(UserModelMixin, AsyncModel,
-            connection=PoolManager(DBURI)):
+                      connection=PoolManager(DBURI)):
     pass
 
 

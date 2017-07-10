@@ -73,7 +73,6 @@ def test_StatementValues():
     assert repr(stmt) == f"StatementValues('{string}', {args})"
     assert repr(StatementValues()) == 'StatementValues(None, ())'
 
-
     # test getitem
     assert stmt['insert'] is None
     with pytest.raises(KeyError):
@@ -245,6 +244,7 @@ async def test_statements_with_db(User, connection):
     res = await connection.fetchrow(*select(user).where(id=user.id))
     print(res)
     assert res is None
+
 
 def test_where_fails(User):
 

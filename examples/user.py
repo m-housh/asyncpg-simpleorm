@@ -25,6 +25,7 @@ class User(orm.AsyncModel, connection=pool_manager):
     # Set the database tablename.  If not supplied then it defaults
     # to lower case version of class name.
     __tablename__ = 'users'
+    _return_records = False
 
     id = orm.Column('_id', orm.UUID(), default=uuid.uuid4, primary_key=True)
     name = orm.Column(orm.String(40))

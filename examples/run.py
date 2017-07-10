@@ -68,7 +68,7 @@ async def main():
 
     print("\n\nLet's create some users...")
     await create_some_users()
-
+    '''
     print('\n\nGetting users as asyncpg.Records...')
     await get_users_as_records()
 
@@ -81,6 +81,12 @@ async def main():
 
     print('\n\nDeleting users...')
     await delete_all_users()
+    '''
+    u = User(id=123, custom_value=3)
+    print(u, u.custom_value)
+
+
+
 
     print('\n\nDropping users table...')
     await orm.drop_table(User)

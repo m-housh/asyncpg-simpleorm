@@ -438,7 +438,8 @@ class AsyncModel(BaseModel):
         object.
 
         """
-        return cls(**record)
+        if record:
+            return cls(**record)
 
     @classmethod
     async def execute(cls, *args, **kwargs):

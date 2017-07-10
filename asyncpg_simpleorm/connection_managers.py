@@ -7,14 +7,17 @@ class ConnectionManager(AsyncContextManagerABC):
     function, used with subclasses of :class:`AsyncModel`.
 
     :param args:  Passed to :func:`asyncpg.connect` function.
+    :param keep_alive:  If ``True`` then the connection is kept alive for
+                        re-use.  Else it is closed after use (default).
     :param kwargs: Passed to :func:`asyncpg.connect` function.
 
     """
-    __slots__ = ('_args', '_kwargs', '_connection')
+    __slots__ = ('_args', '_kwargs', '_connection', '_keep_alive')
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, keep_alive: bool=False, **kwargs):
         self._args = args
         self._kwargs = kwargs
+        self._keep_alive = keep_alive
         self._connection = None
 
     async def __aenter__(self):
@@ -24,7 +27,9 @@ class ConnectionManager(AsyncContextManagerABC):
         return self._connection
 
     async def __aexit__(self, exctype, excval, traceback):
-        pass
+        if self._keep_alive is False:
+            await self._connection.close()
+            self._connection = None
 
 
 class PoolManager(AsyncContextManagerABC):

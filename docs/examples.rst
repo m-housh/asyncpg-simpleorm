@@ -1,12 +1,6 @@
-=====
-Usage
-=====
-
-Asyncpg-Simpleorm requires python >= 3.6.
-
-To use asyncpg-simpleorm in a project::
-
-    import asyncpg_simpleorm
+========
+Examples
+========
 
 
 Asyncpg-Simpleorm aids in the creation of query statements for use with
@@ -62,7 +56,7 @@ Running this example should output something like the following.
 output
 ~~~~~~
 
-.. code-block::
+.. code-block:: bash
 
     Let's create some users...
     Saving user: User(name='foo', email='foo@example.com', id=0cc2385f-d855-4d55-a7cc-398b176e120f)
