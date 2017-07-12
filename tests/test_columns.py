@@ -156,7 +156,11 @@ async def test_ColumnTypes_create_tables(column_type):
     # so for testing purposes, we ignore errors.
     # currently just JsonB and PGLogSequenceNumber
 
-    # test that types create tables properly
-    await table_utils.create_table(ColumnTypeTable)
-    # drop the table after creating it.
-    await table_utils.drop_table(ColumnTypeTable)
+    try:
+        # test that types create tables properly
+        await table_utils.create_table(ColumnTypeTable)
+        # drop the table after creating it.
+        await table_utils.drop_table(ColumnTypeTable)
+    except asyncpg.UndefinedObjectError as exc:
+        if str(column_type) not in ('jsonb', 'pg_lsn'):
+            raise
