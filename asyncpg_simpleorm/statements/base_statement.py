@@ -1,7 +1,7 @@
 import inspect
 import typing
 
-from ..abstract import ModelABC
+from ..abstract import AsyncModelABC
 from ..exceptions import InvalidModel
 from .abstract import StatementABC, SimpleDescriptor
 from .._utils import quote_if_string
@@ -180,10 +180,10 @@ class BaseStatement(StatementABC):
     @property
     def model(self):
         """Return the database model set on an instance.  And ensures that
-        the model is derived from :class:`ModelABC`.
+        the model is derived from :class:`AsyncModelABC`.
 
-        :raises ..exceptions.InvalidModel:  If trying to set an invalid model
-                                            on an instance.
+        :raises asyncpg_simpleorm.InvalidModel:  If trying to set an invalid
+                                                 model on an instance.
 
         """
         return getattr(self, '_model', None)
@@ -191,9 +191,11 @@ class BaseStatement(StatementABC):
     @model.setter
     def model(self, model):
         if model:
-            if inspect.isclass(model) and not issubclass(model, ModelABC):
+            if inspect.isclass(model) and \
+                    not issubclass(model, AsyncModelABC):
                 raise InvalidModel(model)
-            elif not inspect.isclass(model) and not isinstance(model, ModelABC):
+            elif not inspect.isclass(model) and \
+                    not isinstance(model, AsyncModelABC):
                 raise InvalidModel(model)
         self._model = model
 

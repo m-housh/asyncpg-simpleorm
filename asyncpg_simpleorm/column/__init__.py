@@ -4,13 +4,16 @@ import uuid
 import inspect
 from .._utils import quote_if_string
 
-from .column_types import ColumnTypeABC, ColumnTypeMeta, ColumnType, String, \
-    UUID, Boolean, Integer, Number, Date, Time, TZTime, TZTimeStamp, \
-    TimeStamp, TimeInterval, Array, Bit, BigInteger, BigSerial, Binary, \
+from .abstract import ColumnTypeABC
+from .base_column_type import ColumnType, ColumnTypeMeta
+from .column_types import String, \
+    UUID, Boolean, Integer, Number, Date, Time, \
+    Timestamp, TimeInterval, Array, Bit, BigInteger, BigSerial, Binary, \
     FixedLengthString, Money, IPAddress, MACAddress, Box, Line, LineSegment, \
     Circle, Path, Point, Polygon, Double, Json, JsonB, PGLogSequenceNumber, \
     Real, SmallInteger, SmallSerial, Serial, TextSearchQuery, \
-    TextSearchVector, TransactionID, XML
+    TextSearchVector, TransactionID, XML, NumericRange, IntegerRange, \
+    DateRange
 
 __all__ = (
     'Column',
@@ -26,9 +29,7 @@ __all__ = (
     'Number',
     'Date',
     'Time',
-    'TimeStamp',
-    'TZTime',
-    'TZTimeStamp',
+    'Timestamp',
     'TimeInterval',
     'Bit',
     'BigInteger',
@@ -58,6 +59,9 @@ __all__ = (
     'TextSearchVector',
     'TransactionID',
     'XML',
+    'IntegerRange',
+    'NumericRange',
+    'DateRange',
 )
 
 

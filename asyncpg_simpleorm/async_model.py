@@ -1,6 +1,5 @@
 import typing
-import uuid
-# import asyncpg
+import asyncpg
 from .abstract import AsyncContextManagerABC
 from .connection_managers import ConnectionManager, PoolManager
 from .exceptions import ExecutionFailure
@@ -9,6 +8,7 @@ from .column import Column
 from ._utils import quote_if_string as _quote_if_str
 
 
+# TODO:  Update metaclass for usage with __slots__
 class ModelMeta(type):
     """Meta class for ``BaseModel``, which ensures the column's keys
     for the model are set, or will default to the attribute name a ``Column``
@@ -46,7 +46,7 @@ class ModelMeta(type):
 
 
 class BaseModel(metaclass=ModelMeta):
-    """Implementation of :class:`ModelABC`.  This class should typically not be
+    """Base class for :class:`AsyncModel`. This class should typically not be
     used directly, unless building a custom statement generating class.
 
     This class allows column instance values to be set either by the attribute
@@ -101,10 +101,15 @@ class BaseModel(metaclass=ModelMeta):
     def attr_name_for_column(cls, column_name: str) -> str:
         """Get the class attribute name for a given database column name.
 
-        This is used when setting instance values for :class`Column`'s, and
+        This is used when setting instance values for :class:`Column`'s, and
         allows access to the attribute name, whether the ``column_name`` was
         parsed using the actual database column name, or the attribute name
-        (which can be different depending on the ``Column``).
+        (which can be different depending on the :class:`Column`).
+
+        :param column_name:  The database column name to get the attribute name
+                             for.
+        :raises ValueError:  If no :class:`Column` is found for that column
+                             name.
 
         Example::
 
@@ -117,10 +122,6 @@ class BaseModel(metaclass=ModelMeta):
             >>> User.attr_name_for_column('id')
             'id'
 
-        :param column_name:  The database column name to get the attribute name
-                             for.
-        :raises ValueError:  If no :class:`Column` is found for that column
-                             name.
 
 
         """
@@ -138,6 +139,11 @@ class BaseModel(metaclass=ModelMeta):
 
         This is essentially the opposite of :meth:`attr_name_for_column`.
 
+        :param column_name:  The attribute name to get the column name
+                             for.
+        :raises ValueError:  If no :class:`Column` is found for that attribute
+                             name.
+
         Example::
 
             >>> class User(BaseModel):
@@ -149,10 +155,6 @@ class BaseModel(metaclass=ModelMeta):
             >>> User.ensured_column_name('id')
             '_id'
 
-        :param column_name:  The attribute name to get the column name
-                             for.
-        :raises ValueError:  If no :class:`Column` is found for that attribute
-                             name.
 
         """
         for attr, col in cls._columns():
@@ -172,12 +174,12 @@ class BaseModel(metaclass=ModelMeta):
     @classmethod
     def tablename(cls):
         """Returns the tablename set for the class, if one is not set, then
-        we default to the lowercase version of the class name.
+        we default to the lowercase version of the class name + 's'.
 
         """
         if cls.__tablename__ is not None:
             return cls.__tablename__
-        return cls.__name__.lower()
+        return cls.__name__.lower() + 's'
 
     @classmethod
     def primary_keys(cls) -> typing.Tuple[str]:
@@ -212,14 +214,16 @@ class BaseModel(metaclass=ModelMeta):
 # TODO:  Update the ``delete`` method to be a classmethod, that accepts kwargs
 class AsyncModel(BaseModel):
     """Extends the :class:`BaseModel` class to include helpful database
-    queries.  Implements the :class:`AsyncModelABC`.
+    queries.  Implements the :class:`AsyncModelABC` interface.
 
-    By default ``get`` and ``get_one`` methods return :class:`asyncpg.Record`
-    instances.  This option can be toggled class wide, by setting a class
-    attribute ``_return_records`` to ``False`` on a subclass, or can be toggled
-    during a single method call (see ``get`` methods for details).
+    By default :meth:`get` and :meth:`get_one` methods return
+    :class:`asyncpg.Record` instances.  This option can be toggled class wide,
+    by setting a class attribute :attr:`return_records` to ``False`` on a
+    subclass, or can be toggled during a single method call
 
-    This class uses the ``__init_subclass__`` syntax new in ``python-3.6``.
+    .. seealso:: :meth:`get` and :meth:`get_one` methods for details.
+
+    This class uses the :meth:`__init_subclass__` syntax new in ``python-3.6``.
     That allows ``kwargs`` to be passed into the class declaration.
 
     A user should subclass this providing a :class:`ConnectionManager` or
@@ -264,11 +268,10 @@ class AsyncModel(BaseModel):
 
     """
 
-    _return_records: typing.ClassVar[bool] = True
+    return_records: typing.ClassVar[bool] = True
     """Set whether to return :class:`asyncpg.Record` instances from ``get``
     queries.  Default is ``True``, set to ``False`` to always return instances
     of your subclass.
-
 
     """
 
@@ -337,13 +340,13 @@ class AsyncModel(BaseModel):
     @classmethod
     def _parse_records(cls, records: typing.Optional[bool]) -> bool:
         """Check if the input is ``None``, if it is then we return the value
-        of the ``_return_records`` attribute on the class.
+        of the ``return_records`` attribute on the class.
 
         :param records:  The input value to check.
 
         """
         if records is None:
-            return cls._return_records
+            return cls.return_records
         return records
 
     @classmethod
@@ -355,7 +358,7 @@ class AsyncModel(BaseModel):
                          :class:`asyncpg.Record`'s. If ``False`` then we will
                          return instances of the ``AsyncModel`` subclass.  If
                          ``None``, then we default to what's set on the subclass
-                         at the `_return_records` attribute
+                         at the `return_records` attribute
                          (default is ``True``).
         :param kwargs:  Optional kwargs that are passed into a ``where`` clause.
 
@@ -398,7 +401,7 @@ class AsyncModel(BaseModel):
                         :class:`asyncpg.Record`'s. If ``False`` then we will
                         return instances of the ``AsyncModel`` subclass.  If
                         ``None``, then we default to what's set on the subclass
-                        at the `_return_records` attribute
+                        at the `return_records` attribute
                         (default is ``True``).
         :param kwargs:  Optional kwargs that are passed into a ``where`` clause.
 
@@ -433,9 +436,12 @@ class AsyncModel(BaseModel):
                 return res
 
     @classmethod
-    def from_record(cls, record) -> typing.Any:
+    def from_record(cls, record: asyncpg.Record) -> typing.Any:
         """Return an instance of the class from an :class:`asyncpg.Record`
         object.
+
+        :param record:  An :class:`asyncpg.Record` instance to create a
+                        database model instance from.
 
         """
         if record:
@@ -450,8 +456,8 @@ class AsyncModel(BaseModel):
         This is equivalent to::
 
             >>> async with Model.connection() as conn:
-                    async with conn.transaction():
-                        return await conn.execute(*args, **kwargs)
+            ...     async with conn.transaction():
+            ...         return await conn.execute(*args, **kwargs)
 
         """
         async with cls.connection() as conn:

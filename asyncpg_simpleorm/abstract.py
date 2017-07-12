@@ -4,53 +4,44 @@ import typing
 from ._utils import all_checks
 
 
-class ModelABC(metaclass=abc.ABCMeta):
-    """Abstract reperesentation of a database model.
-
-    """
-    @classmethod
-    @abc.abstractmethod
-    def column_names(cls) -> typing.Iterable[str]:  # pragma: no cover
-        pass
-
-    @classmethod
-    @abc.abstractmethod
-    def tablename(cls) -> str:  # pragma: no cover
-        pass
-
-    @classmethod
-    def __subclasshook__(cls, Cls):
-        if cls is ModelABC:
-            return all_checks(Cls, 'column_names', 'tablename')
-        return NotImplemented  # pragma: no cover
-
-
 class AsyncModelABC(metaclass=abc.ABCMeta):
     """Abstract representation of an async database model.
 
+    Ensures that an object declares, :meth:`column_names`, :meth:`tablename`,
+    :meth:`connection`, :meth:`from_record`, :meth:`__init_subclass__` that
+    allows a connection manager to be registered with subclasses.
+
     """
+
     @classmethod
     @abc.abstractmethod
     def column_names(cls) -> typing.Iterable[str]:  # pragma: no cover
-        pass
-
-    @classmethod
-    @abc.abstractmethod
-    def tablename(cls) -> str:  # pragma: no cover
-        pass
-
-    @classmethod
-    @abc.abstractmethod
-    def connection(cls) -> 'AsyncContextManagerABC':  # pragma: no cover
-        """Return an async context manager, that returns an
-        :class:`asyncpg.Connection` instance.
+        """Return the database column names.
 
         """
         pass
 
     @classmethod
     @abc.abstractmethod
-    def from_record(cls, record) -> 'AsyncModelABC':  # pragma: no cover
+    def tablename(cls) -> str:  # pragma: no cover
+        """Return the database table name.
+
+        """
+        pass
+
+    @classmethod
+    @abc.abstractmethod
+    def connection(cls) -> 'AsyncContextManagerABC':  # pragma: no cover
+        """Return an async context manager, that returns an
+        :class:`asyncpg.Connection` instance when used in an ``async with``
+        block.
+
+        """
+        pass
+
+    @classmethod
+    @abc.abstractmethod
+    def from_record(cls, record):  # pragma: no cover
         """Return an instance of the class from an :class:`asyncpg.Record`
         instance.
 
@@ -77,7 +68,7 @@ class AsyncModelABC(metaclass=abc.ABCMeta):
 class AsyncContextManagerABC(metaclass=abc.ABCMeta):
     """Abstract representation of an async context manager.
 
-    Ensures a class has ``__aenter__`` and ``__aexit__`` methods.
+    Ensures a class has :meth:`__aenter__` and :meth:`__aexit__` methods.
 
     """
     @abc.abstractmethod

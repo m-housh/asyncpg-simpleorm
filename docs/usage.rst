@@ -2,6 +2,8 @@
 Usage
 =====
 
+.. module:: asyncpg_simpleorm
+
 Asyncpg-Simpleorm requires python >= 3.6.
 
 To use asyncpg-simpleorm in a project::
@@ -19,16 +21,17 @@ Connection Managers
 -------------------
 
 Before we discuss creating database model's we will first discuss the connection
-manager classes.  These are required to instantiate an ``AsyncModel`` subclass.
-These classes are used to manage the database connection that a model uses for
-it's operations.
+manager classes.  These are required to instantiate an :class:`AsyncModel` 
+subclass. These classes are used to manage the database connection that a model 
+uses for it's operations.
 
-There are two builtin manager classes, ``ConnectionManager`` and
-``PoolManager``.  These mimic the contructors for ``asyncpg.connect`` and
-``asyncpg.create_pool``.  Internally these provide a common interface for the
-database model's to retrieve a connection in the same way, no matter which
+There are two builtin manager classes, :class:`ConnectionManager` and
+:class:`PoolManager`.  These mimic the constructors for :func:`asyncpg.connect` 
+and :func:`asyncpg.create_pool`.  Internally these provide a common interface 
+for the database model's to retrieve a connection in the same way, no matter which
 manager best fit's your application.  They are asynchronous context managers,
-that return an ``asyncpg.Connection`` when used in an ``async with`` statement.
+that return an :class:`asyncpg.Connection` when used in an ``async with`` 
+statement.
 
 Most likely you will not use the manager directly, besides instantiating it and
 using it in the declaration of your database models.
@@ -37,7 +40,7 @@ ConnectionManager
 -----------------
 
 This add's one additional ``kwarg``, that is not passed into the
-``asyncpg.connect`` method.
+:func:`asyncpg.connect` method.
 
 keep_alive:  
 ~~~~~~~~~~~
@@ -61,10 +64,10 @@ a single use and re-created upon further database operations.
 PoolManager
 -----------
 
-This does not add anything to the ``asyncpg.create_pool`` method, when this
+This does not add anything to the :func:`asyncpg.create_pool` method, when this
 class is used as a manager, then when used as an async context manager, it
-will establish a connection using the ``asyncpg.Pool.acquire()`` method, and
-will then ``release`` the connection after it's use.
+will establish a connection using the :meth:`asyncpg.Pool.acquire` method, and
+will then :meth:`asyncpg.Pool.release` the connection after it's use.
 
 This is probably the best option if create multiple database model's that
 share the same manager.  For example declaring a custom base model, that all
@@ -84,21 +87,22 @@ your database model's inherit from.
 Creating Database Model's
 -------------------------
 
-Database models are created by subclassing ``AsyncModel`` and providing a
-``Connection Manager`` instance in the class declaration.
+Database models are created by subclassing :class:`AsyncModel` and providing a
+:class:`ConnectionManager` or :class:`PoolManager` instance in the class 
+declaration.
 
 
 AsyncModel
 ----------
 
-The ``AsyncModel`` is the main class that a user needs to subclass to create a
+The :class:`AsyncModel` is the main class that a user needs to subclass to create a
 representation of a database table.  That subclass can then be used for common
 database operations on that table.
 
 
-``AsyncModel`` uses the ``__init_subclass__`` feature new in python 3.6, which
-is why the ``Connection Manager`` is passed directly into the class declaration 
-using the ``connection`` kwarg.
+:class:`AsyncModel` uses the :meth:`__init_subclass__` feature new in python 3.6, 
+which is why the ``Connection Manager`` is passed directly into the class 
+declaration using the ``connection`` kwarg.
 
 **An example User model:**
 
@@ -110,7 +114,7 @@ using the ``connection`` kwarg.
     
     >>> class User(orm.AsyncModel, connection=orm.ConnectionManager(DB_URI)):
     ...     __tablename__ = 'users'
-    ...     _return_records = False
+    ...     return_records = False
     ...     id = orm.Column('_id', orm.UUID(), default=uuid.uuid4, primary_key=True)
     ...     name = orm.Column(orm.String(40))
     ...     email = orm.Column(orm.String(100))
@@ -130,35 +134,43 @@ __tablename__:
 
 An optional property to set the table name for the model.
 If this is not set, then we will default to the lowercase version of the class
-name.  This property is used in every database operation for this model.  It is
-likely that in future releases, that this will be added as an option in the
-``__init_subclass__`` class constructor.  However it is there and has the naming
-convention to be similar to ``sqlalchemy``'s database model's.
+name + 's' (so for this example it would actually be the same as what we
+declared, but is there for demonstration purposes).  This property is used in 
+every database operation for this model.  
 
-_return_records:  
-~~~~~~~~~~~~~~~~
+It is likely that in future releases, that this will be added as an option in 
+the :meth:`__init_subclass__` class constructor.  However it is there and has the 
+naming convention to be similar to ``sqlalchemy``'s database model's.
+
+The table name wheter set through this variable or using the default is accessed
+through the :meth:`AsyncModel.tablename` class method.
+
+return_records:  
+~~~~~~~~~~~~~~~
 
 An optional boolean set on a subclass to change the
 behavior of any ``get`` operations.  The default is ``True`` which returns
-instances of ``asyncpg.Record`` instances from ``get`` queries.
+instances of :class:`asyncpg.Record` instances from ``get`` queries.
 
 Returning records can also be overridden for each call to a ``get`` method, so
 this is really dependant upon your use case.
     
-The decision to return ``asyncpg.Record`` instances is purely based on the fact
+The decision to return :class:`asyncpg.Record` instances is purely based on the fact
 that the design of this package is primarily to aid in the creation of database
-statements and queries, and the ``asyncpg.Record`` , being more of a ``dict`` 
-like object, fits better into returning ``json`` responses from an API layer.
+statements and queries, and the :class:`asyncpg.Record` , being more of a 
+``dict`` like object, fits better into returning ``json`` responses from 
+an API layer.
     
-It should be noted that we do not implement the ``__getitem__`` and
-``__setitem__`` methods, so instances of an ``AsyncModel`` subclass use ``.``
-style attribute access where ``asyncpg.Records`` use the ``[key]`` dict syntax.
+It should be noted that we do not implement the :meth:`__getitem__` and
+:meth:`__setitem__` methods, so instances of an :class:`AsyncModel` subclass use ``.``
+style attribute access where :class:`asyncpg.Records` use the ``[key]`` dict 
+style syntax.
 
 instantiation
 ~~~~~~~~~~~~~
 
-Subclasses of ``AsyncModel`` are instantiated with ``kwargs`` with key's mapping
-to the column name.  If a ``Column`` is declared with a ``default`` parameter
+Subclasses of :class:`AsyncModel` are instantiated with ``kwargs`` with key's mapping
+to the column name.  If a :class:`Column` is declared with a ``default`` parameter
 then that will be used if no value is passed in for that column.
 
 .. code-block:: python
@@ -175,8 +187,8 @@ Failures will bubble up when trying to save to the database.
     User(id=123, name=None, email=None)
 
 
-However column values can be set with the database column name (if differs from
-the attribute name)
+However column values can be set with the database column name (if it differs 
+from the attribute name)
 
 .. code-block:: python
 
@@ -187,8 +199,8 @@ the attribute name)
     >>> repr(user)
     User(id=123, name=None, email=None)
 
-The above functionality is not dependant on the default ``__init__`` method, so
-an ``AsyncModel`` subclass is welcome to declare a custom constructor or
+The above functionality is not dependant on the default :meth:`__init__` method, so
+an :class:`AsyncModel` subclass is welcome to declare a custom constructor or
 use the default.
 
 The default constructor will actually set any ``kwarg`` as an attribute.
@@ -198,16 +210,17 @@ The default constructor will actually set any ``kwarg`` as an attribute.
     >>> User(id=123, custom_value=3)
     User(id=123, name=None, email=None, custom_value=3)
 
-AsyncModel Database Operations
-------------------------------
+-------------------
+Database Operations
+-------------------
 
-Subclasses built from ``AsyncModel`` have the following database operations
+Subclasses built from :class:`AsyncModel` have the following database operations
 builtin.
 
-save:
-~~~~~
+:meth:`AsyncModel.save`:
+------------------------
 
-Instance method that will either update it, or create a new row in the database.  
+Instance method that will either update or create a new row in the database.  
 
 .. code-block:: python
 
@@ -216,11 +229,11 @@ Instance method that will either update it, or create a new row in the database.
     >>> user.name = 'bar'
     >>> await user.save()
 
-get:
-~~~~
+:meth:`AsyncModel.get`:
+-----------------------
 
 A class method that retrieves model's from the database.  This method always 
-returns a list of either ``asyncpg.Record`` instances, or instances of the 
+returns a list of either :class:`asyncpg.Record` instances, or instances of the 
 database model.
 
 .. code-block:: python
@@ -229,7 +242,7 @@ database model.
     [User(id=6b713a5f-c5ef-4e8e-be1c-46995f9305f4, name='bar', 
     email='foo@example.com'), ...]
 
-Above because we declared ``_return_records`` as ``True`` we by default return
+Above because we declared :attr:`return_records` as ``False`` we by default return
 instances of the ``User`` class.  This is not the default behavior otherwise.
 
 If you would like to get record instances.
@@ -237,7 +250,7 @@ If you would like to get record instances.
 .. code-block:: python
 
     >>> await User.get(records=True)
-    [<Record _id=UUID('6b713a5f-c5ef-4e8e-be1c-46995f9305f4' name='bar'
+    [<Record _id=UUID('6b713a5f-c5ef-4e8e-be1c-46995f9305f4') name='bar'
     email='foo@example.com'>, ...]
 
 If you would like to filter the query, then you can pass in ``kwargs`` where the
@@ -256,18 +269,19 @@ Above would translate to.
 
 .. code-block:: python
 
-    stmt = '''
-        SELECT (users._id, users.name, users.email) FROM users
-        WHERE name = $1;
-    '''
-    await connection.fetch(stmt, 'bar')
+    >>> stmt = 'SELECT (users._id, users.name, users.email) FROM users WHERE users.name = $1;'
+    >>> records = await connection.fetch(stmt, 'bar')
+    >>> print(list(map(User.from_record, records))) 
+    [User(id=6b713a5f-c5ef-4e8e-be1c-46995f9305f4, name='bar',
+    email='foo@example.com'), ]
 
 
-get_one:
-~~~~~~~~
+:meth:`AsyncModel.get_one`:
+---------------------------
 
-A class method, that is the same as the ``get`` method, only it returns a single
-``asyncpg.Record`` instance, or database model instance.
+A class method, that is the same as the :meth:`AsyncModel.get` method, 
+only it returns a single :class:`asyncpg.Record` instance, or database model 
+instance.
 
 You would typically use this with some ``kwarg`` filter's, else it will just
 return whatever database row is returned first.
@@ -278,16 +292,17 @@ return whatever database row is returned first.
     User(id=6b713a5f-c5ef-4e8e-be1c-46995f9305f4, name='bar',
     email='foo@example.com')
 
-If you would like to toggle, whether to return an ``asyncpg.Record`` instance.
+If you would like to toggle, whether to return an :class:`asyncpg.Record` 
+instance.
 
 .. code-block:: python
 
     >>> await User.get_one(name='bar', record=True)
-    <Record _id=UUID('6b713a5f-c5ef-4e8e-be1c-46995f9305f4' name='bar'
+    <Record _id=UUID('6b713a5f-c5ef-4e8e-be1c-46995f9305f4') name='bar'
     email='foo@example.com'>
 
-delete:
-~~~~~~~
+:meth:`AsyncModel.delete`:
+--------------------------
 
 Instance method that will remove a database model row from the database.
 
@@ -295,37 +310,40 @@ Instance method that will remove a database model row from the database.
 
     >>> user = await User.get_one(name='bar')
     >>> await user.delete()
-    >>> await user.get_one(name='bar')
+    >>> print(await user.get_one(name='bar'))
     None
 
-execute:
-~~~~~~~~
+:meth:`AsyncModel.execute`:
+---------------------------
 
 A convenience class method that will execute a query inside an
-``asyncpg.Connection.transaction`` block using the the database model's 
+:meth:`asyncpg.Connection.transaction` block using the the database model's 
 connection manager.
 
 .. code-block:: python
 
     >>> stmt = 'SELECT * FROM users'
     >>> await User.execute(stmt)
-    [<Record _id=UUID('6b713a5f-c5ef-4e8e-be1c-46995f9305f4' name='bar'
+    [<Record _id=UUID('6b713a5f-c5ef-4e8e-be1c-46995f9305f4') name='bar'
     email='foo@example.com'>, ...]
 
-*See Api for full reference*
+.. seealso:: 
 
-Column
-------
+    :ref:`api` for full reference.
 
-Columns are a specialized descriptor class, that store the information
+--------------
+Table Column's
+--------------
+
+:class:`Column`'s are a specialized descriptor class, that store the information
 regarding the database table column.  These parameters are accessible from the
 class level of the model, but not on the instance level of a model, they can have
 values set or retrieved from them.  These store their value in a hidden key on
 the instance, so it is currently not supported to use ``__slots__`` with an
-``AsyncModel`` subclass.
+:class:`AsyncModel` subclass.
 
 key:
-~~~~
+----
     
 An optional string that represents the database column name.  This is only
 required when the column name is different from the attribute name you would
@@ -335,27 +353,29 @@ This can be passed in as a ``kwarg`` or if ``args`` are passed in and there
 is a string in the args we will use that as the key.
 
 _type:
-~~~~~~
+------
 
-An optional ``ColumnType``.  This is only used when using the
-``create_table`` utility method.  So if you are not creating table's using
-the database model, then this is not needed.
+An optional :class:`ColumnType`.  This is only used when using the
+:func:`create_table` utility method.  So if you are not creating table's 
+using the database model, then this is not needed.
 
 We support all postgres types.
 
 This can be passed in as a ``kwarg`` or if ``args`` are passed in and there
-is a class or instance that passes a check against ``ColumnTypeABC`` then
+is a class or instance that passes a check against :class:`ColumnTypeABC` then
 that will be used.
 
 default:
-~~~~~~~~
+--------
 
-This can be a value or a callable used as the default value for an
-instance.  If it is a callable, then it should take no parameters and return
-a value, which is then used as the default value.
+This can be a value or a callable, as in the example ``User`` model, which used 
+as the default value for an instance.  
+
+If it is a callable, then it should take no parameters and return a value, 
+which is then used as the default value.
 
 primary_key:
-~~~~~~~~~~~~
+------------
 
 Mark a column as a ``PRIMARY KEY``.  This is used in some generated queries, as
 well as when creating a table from a database model.
@@ -373,8 +393,8 @@ level.
     ...
     AttributeError: 'NoneType' object has no attribute 'key'
 
-    
+------------ 
 Column Types
 ------------
 
-# TODO:  Make column type table.
+.. seealso:: :ref:`api`

@@ -1,4 +1,4 @@
-from asyncpg_simpleorm import ModelABC, BaseModel, Column
+from asyncpg_simpleorm import AsyncModelABC, BaseModel, Column
 from asyncpg_simpleorm.async_model import _quote_if_str
 import uuid
 
@@ -9,12 +9,12 @@ def test__quote_if_str():
     assert _quote_if_str(not_str) == not_str
 
 
-def test_is_ModelABC():
+def test_is_AsyncModelABC(User):
 
-    assert issubclass(BaseModel, ModelABC)
-    assert isinstance(BaseModel(), ModelABC)
-    assert not issubclass(object, ModelABC)
-    assert not isinstance(object(), ModelABC)
+    assert not issubclass(BaseModel, AsyncModelABC)
+    assert not isinstance(BaseModel(), AsyncModelABC)
+    assert issubclass(User, AsyncModelABC)
+    assert isinstance(User(), AsyncModelABC)
 
 
 def test_Column_descriptior(User):
@@ -40,7 +40,7 @@ def test_BaseModel_column_names(User):
 def test_BaseModel_tablename(User):
     assert User.tablename() == 'users'
     assert User.tablename() == User().tablename()
-    assert BaseModel.tablename() == 'basemodel'
+    assert BaseModel.tablename() == 'basemodels'
 
 
 def test_BaseModel_primary_keys(User):

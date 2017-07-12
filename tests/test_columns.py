@@ -1,6 +1,7 @@
 import pytest
 import inspect
 import uuid
+import asyncpg
 
 from .conftest import DBURI
 
@@ -20,47 +21,53 @@ def _col_types():
                 yield value
 
 
-@pytest.fixture(params=list(_col_types()))
+def _column_type_instances():
+    for col_type in _col_types():
+        if col_type == column.String():
+            yield col_type()
+            yield column_type(3)
+        elif col_type == column.FixedLengthString:
+            yield col_type(3)
+        elif col_type == column.Bit:
+            yield col_type(3)
+            yield col_type(3, fixed_length=True)
+        elif col_type == column.Time:
+            yield col_type()
+            yield col_type(with_timezone=True)
+        elif col_type == column.Timestamp:
+            yield col_type()
+            yield col_type(with_timezone=True)
+        elif col_type == column.Array:
+            yield col_type(column.String())
+            yield col_type(column.String, n=3)
+            yield col_type(column.String(), n=3, dimensions=3)
+            yield col_type(column.String, dimensions=3)
+        elif col_type == column.IPAddress:
+            yield col_type()
+            yield col_type(inet=True)
+        elif col_type == column.IntegerRange:
+            yield col_type()
+            yield col_type(big=True)
+        else:
+            yield col_type()
+
+
+@pytest.fixture(params=list(_column_type_instances()))
 def column_type(request):
     return request.param
 
 
 def test_ColumnTypes__slots__(column_type):
-    if column_type == column.Array:
-        assert not hasattr(column_type(column.String()), '__dict__')
-    elif column_type in [column.Bit, column.FixedLengthString]:
-        assert not hasattr(column_type(3), '__dict__')
-    else:
-        assert not hasattr(column_type(), '__dict__')
+    assert not hasattr(column_type, '__dict__')
 
 
-def test_ColumnType_subclass_fails():
+def test_Column_pg_column_string(column_type):
+    assert isinstance(column_type, column.ColumnTypeABC)
 
-    with pytest.raises(RuntimeError):
-        class Fail(column.ColumnType):
-            pass
-
-    with pytest.raises(RuntimeError):
-        class Fail2(column.ColumnType, pg_type_string='string'):
-            # init with no declared __slots__ fails
-            def __init__(self):
-                pass
-
-
-def test_ColumnType_pg_column_string(column_type):
-    assert issubclass(column_type, column.ColumnTypeABC)
-
-    if column_type == column.Array:
-        ctype = column_type(column.String())
-    elif column_type in [column.Bit, column.FixedLengthString]:
-        ctype = column_type(3)
-    else:
-        ctype = column_type()
-
-    type_string = ctype.pg_type_string
+    type_string = column_type.pg_type_string
     assert type_string
 
-    col = column.Column('col', ctype, primary_key=True)
+    col = column.Column('col', column_type, primary_key=True)
     expected = f'col {type_string} PRIMARY KEY'
     assert col.pg_column_string == expected
 
@@ -80,7 +87,7 @@ def test_User_column_types(User):
     assert User.email.pg_column_string == 'email text'
 
 
-def test_ColumnType_pg_column_string_fails():
+def test_Column_pg_column_string_fails():
 
     col = column.Column('col')
     with pytest.raises(TypeError):
@@ -91,7 +98,18 @@ def test_ColumnType_pg_column_string_fails():
         col.pg_column_string
 
 
-def test_column_factory():
+def test_ColumnType_pg_type_string_fails():
+
+    with pytest.raises(TypeError):
+        column.ColumnType().pg_type_string
+
+
+def test_ColumnType___repr__():
+    expected = "ColumnType('text')"
+    assert repr(column.ColumnType('text')) == expected
+
+
+def test_Column():
 
     cols = (
         column.Column('id', column.String, default='paul',
@@ -131,34 +149,14 @@ def test_Array_fails():
 @pytest.mark.asyncio
 async def test_ColumnTypes_create_tables(column_type):
 
-    ctypes = []
+    class ColumnTypeTable(AsyncModel, connection=ConnectionManager(DBURI)):
+        col = column.Column(column_type)
 
-    if column_type == column.Array:
-        ctypes = [
-            column_type(column.Integer),
-            column_type(column.Integer(), 3),
-            column_type(column.Integer(), 3, 3)
-        ]
-    elif column_type == column.Bit:
-        ctypes = [
-            column_type(3),
-            column_type(3, fixed_length=True)
-        ]
-    elif column_type == column.FixedLengthString:
-        ctypes = [column_type(3)]
-    elif column_type == column.IPAddress:
-        ctypes = [
-            column_type(),
-            column_type(inet=True)
-        ]
-    else:
-        ctypes = [column_type()]
+    # there are a few types that aren't supported/ fail on all travisci,
+    # so for testing purposes, we ignore errors.
+    # currently just JsonB and PGLogSequenceNumber
 
-    for ctype in ctypes:
-        class ColumnTypeTable(AsyncModel, connection=ConnectionManager(DBURI)):
-            col = column.Column(ctype)
-
-        # test that types create tables properly
-        await table_utils.create_table(ColumnTypeTable)
-        # drop the table after creating it.
-        await table_utils.drop_table(ColumnTypeTable)
+    # test that types create tables properly
+    await table_utils.create_table(ColumnTypeTable)
+    # drop the table after creating it.
+    await table_utils.drop_table(ColumnTypeTable)

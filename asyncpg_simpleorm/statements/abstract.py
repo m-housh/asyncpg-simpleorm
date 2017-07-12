@@ -14,7 +14,7 @@ class StatementABC(metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
     def model(self):  # pragma: no cover
-        """Return the model set on an instance.
+        """Return the :class:`AsyncModel` set on an instance.
 
         """
         pass
@@ -37,7 +37,12 @@ class StatementABC(metaclass=abc.ABCMeta):
     def query(self) -> typing.Iterable[typing.Any]:  # pragma: no cover
         """Return an iterable that can be used in an ``asyncpg`` query.
         The first value should be the ``query_string``, followed by the
-        flattened query args.
+        flattened query args
+
+        An example return value::
+
+            ('SELECT * FROM users WHERE name = $1 and email = $2', 'foo',
+             'foo@example.com')
 
         """
         return (self.query_string, ) + tuple(self.query_args)

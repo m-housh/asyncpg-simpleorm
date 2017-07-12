@@ -56,7 +56,7 @@ Running this example should output something like the following.
 output
 ~~~~~~
 
-.. code-block:: bash
+.. code-block:: python
 
     Let's create some users...
     Saving user: User(name='foo', email='foo@example.com', id=0cc2385f-d855-4d55-a7cc-398b176e120f)

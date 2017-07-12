@@ -1,15 +1,16 @@
 from .async_model import AsyncModel, BaseModel
-from .abstract import ModelABC, AsyncContextManagerABC, AsyncModelABC
+from .abstract import AsyncContextManagerABC, AsyncModelABC
 from .statements import StatementABC, Statement, BaseStatement, \
     select, insert, update, delete
 from .connection_managers import ConnectionManager, PoolManager
 from .exceptions import BaseException, ExecutionFailure, InvalidModel
-from .column import Column, ColumnTypeABC, String, UUID, Boolean, Integer, \
-    Number, Date, Time, TimeStamp, TZTime, TZTimeStamp, TimeInterval, \
+from .column import Column, ColumnType, ColumnTypeABC, String, UUID, Boolean, \
+    Integer, Number, Date, Time, Timestamp, TimeInterval, \
     Array, BigInteger, Bit, BigSerial, Binary, FixedLengthString, Money, \
     IPAddress, MACAddress, Box, Line, LineSegment, Circle, Path, Point, \
     Polygon, Double, Json, JsonB, PGLogSequenceNumber, Real, SmallInteger, \
-    SmallSerial, Serial, TextSearchQuery, TextSearchVector, TransactionID, XML
+    SmallSerial, Serial, TextSearchQuery, TextSearchVector, TransactionID, \
+    XML, NumericRange, DateRange, IntegerRange
 
 from .table_utils import create_table, drop_table, truncate_table
 
@@ -21,7 +22,6 @@ __all__ = (
     # abstract classes
     'AsyncModelABC',
     'AsyncContextManagerABC',
-    'ModelABC',
     'StatementABC',
     'ColumnTypeABC',
     # model classes
@@ -30,6 +30,7 @@ __all__ = (
     # column classes
     'Column',
     # column types
+    'ColumnType',
     'String',
     'UUID',
     'Boolean',
@@ -37,9 +38,7 @@ __all__ = (
     'Number',
     'Date',
     'Time',
-    'TimeStamp',
-    'TZTime',
-    'TZTimeStamp',
+    'Timestamp',
     'TimeInterval',
     'Array',
     'BigInteger',
@@ -69,6 +68,9 @@ __all__ = (
     'TextSearchVector',
     'TransactionID',
     'XML',
+    'IntegerRange',
+    'NumericRange',
+    'DateRange',
     # connection managers
     'ConnectionManager',
     'PoolManager',
