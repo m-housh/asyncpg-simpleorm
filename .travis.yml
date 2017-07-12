@@ -12,6 +12,10 @@ env:
 
 services:
   - docker
+  - postgresql
+
+addons:
+  - postgresql: "9.6"
 
 before_install:
   - docker pull postgres
