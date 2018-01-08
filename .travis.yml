@@ -4,11 +4,9 @@
 language: python
 python: 
   - "3.6"
-  - "3.7-dev"
 
 env:
   - TOXENV=py36
-  - TOXENV=py37
 
 services:
   - docker
