@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open('README.rst') as readme_file:
     readme = readme_file.read()
@@ -26,9 +26,7 @@ setup(
     author="Michael Housh",
     author_email='mhoush@houshhomeenergy.com',
     url='https://github.com/m-housh/asyncpg_simpleorm',
-    packages=[
-        'asyncpg_simpleorm',
-    ],
+    packages=find_packages(),
     package_dir={'asyncpg_simpleorm':
                  'asyncpg_simpleorm'},
     include_package_data=True,
