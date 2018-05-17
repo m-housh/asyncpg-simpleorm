@@ -187,7 +187,7 @@ class Statement(BaseStatement):
             raise TypeError()
 
         # return the partial ``where`` string and args.
-        return ' AND'.join(strings), tuple(args)
+        return ' AND '.join(strings), tuple(args)
 
     def _parse_where(self, primary_keys=False):
         """Parses the ``model`` or ``kwargs`` set on an instance and builds
