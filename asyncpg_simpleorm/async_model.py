@@ -491,7 +491,7 @@ class AsyncModel(BaseModel):
                 # get the result from the database.
                 res = await conn.fetchrow(*stmt)
 
-                if record is False:
+                if res and record is False:
                     # return instances of the class, not records
                     return cls.from_record(res)
                 # return instances of the asyncpg record class
